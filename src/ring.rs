@@ -1,6 +1,6 @@
 const RING_SIZE: usize = 5;
 
-
+// https://doc.rust-lang.org/std/num/type.NonZeroUsize.html
 
 #[derive(Copy, Clone, Debug)]
 struct Slot {
@@ -29,25 +29,57 @@ impl Ring {
   }
 
   fn bury(&mut self, time: f64) {
-    if self.data[self.start].birth < time { // can use recursion here, but need to be careful, cause it will loop infinitely; maybe should add did_ignite flag, so this would quaranty there is at leas one cell alive
-      self.start += 1;                      // well, i have the end index, so there is actually nothing to be afraid of with recursion
+    if self.data[self.start].birth < time 
+    // && self.active == True
+    { // can use recursion here, but need to be careful, cause it will loop infinitely; maybe should add did_ignite flag, so this would quaranty there is at leas one cell alive
+      // paint cell white
+      // check for overflow
+      if self.start >= self.data.len() - 1 {
+        self.start = 0;
+      } else {
+        self.start += 1;
+      }
+                      // well, i have the end index, so there is actually nothing to be afraid of with recursion
       
       if self.start != self.end {
         self.bury(time);
       }
-      
+
     }
   }
 
+  // if there is too many new cells, then end can reach start
+  // need to implement a kill_oldest method
   fn ignite(&mut self, body: (i32, i32, f64)) {
-    self.end += 1;
+    if self.end >= self.data.len() - 1 {           // if the length of the ring is zero, this panics, because usize
+      self.end = 0;
+    } else {
+      self.end += 1;
+    }
+
+    if self.end == self.start {
+      self.kill_oldest();
+    }
+
     let slot = &mut self.data[self.end];
     slot.x = body.0;
     slot.y = body.1;
     slot.birth = body.2;
   }
 
-  fn color() {}
+  fn kill_oldest(&mut self) {
+      if self.start >= self.data.len() - 1 {
+        self.start = 0;
+      } else {
+        self.start += 1;
+      }
+  }
+
+  fn color() {
+    // this will run at the end
+    // check the time on each slot
+    // color accordingly
+  }
 
 }
 
@@ -62,15 +94,18 @@ mod tests {
     ring.ignite((0,0,0.5));
     ring.ignite((0,0,1.0));
     ring.ignite((0,0,1.5));
-    println!("{:?}", ring);
-    ring.bury(0.1);
-    println!("{:?}", ring);
-    ring.bury(0.2);
-    println!("{:?}", ring);
-    ring.bury(0.6);
-    println!("{:?}", ring);
-    ring.bury(2.2);
-    println!("{:?}", ring);
+    ring.ignite((0,0,2.0));
+    ring.ignite((0,0,2.5));
+    ring.ignite((0,0,3.0));
+    println!("{:#?}", ring);
+    // ring.bury(0.1);
+    // println!("{:?}", ring);
+    // ring.bury(0.2);
+    // println!("{:?}", ring);
+    // ring.bury(0.6);
+    // println!("{:?}", ring);
+    // ring.bury(2.2);
+    // println!("{:?}", ring);
     
 
   }
