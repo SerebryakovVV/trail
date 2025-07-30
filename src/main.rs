@@ -4,7 +4,8 @@
 // on update run old to new, so if a pixel is revisited, we just have the latest value
 // and we have two pointers, the oldest time-ended value will move pointer on its death
 
-mod ring;
+mod trail;
+use trail::Trail;
 
 use raylib::prelude::*;
 
@@ -31,6 +32,7 @@ fn draw_field(handle: &mut RaylibDrawHandle, trail: &Vec<(i32, i32)>) {
   }
 }
 
+fn bresenham() {}
 
 enum DrawMode {
   Click,
@@ -41,7 +43,8 @@ enum DrawMode {
 fn main() {
   let mut draw_mode = DrawMode::Hover;
   let mut prev_mouse_pos_in_field = (0, 0);
-  let mut trail: Vec<(i32, i32)> = Vec::new();
+  // let mut trail: Vec<(i32, i32)> = Vec::new();
+  let mut trail = Trail::new();
   let (mut rl, thread) = raylib::init()
                                 .size(
                                   FIELD_WIDTH as i32 * CELL_SIZE, 
@@ -58,25 +61,27 @@ fn main() {
     
  
     let mut d = rl.begin_drawing(&thread);
+    let time_now = d.get_time();
 
     match draw_mode {
       DrawMode::Click => {
         if d.is_mouse_button_pressed(MouseButton::MOUSE_BUTTON_LEFT) {
-          trail.push(
-            mouse_pos_to_field(
-              d.get_mouse_position()
-            )
-          );
+          // trail.push(
+          //   mouse_pos_to_field(
+          //     d.get_mouse_position()
+          //   )
+          // );
         }
       },
       DrawMode::Hover => {
         let new_pos = mouse_pos_to_field(d.get_mouse_position());
-        if new_pos != prev_mouse_pos_in_field {  
-          trail.push(new_pos);
-          prev_mouse_pos_in_field = new_pos;                             // the trail grows when hovering over the same pixels, but thats what i need, actually
-          // println!("{:#?}", trail);
-          println!("{}", trail.len());
-        }
+        if new_pos != prev_mouse_pos_in_field {
+          prev_mouse_pos_in_field = new_pos;                         // the trail grows when hovering over the same pixels, but thats what i need, actually
+          trail.set_active(true)
+               .ignite(&mut d, new_pos.0, new_pos.1, time_now)
+               .bury(&mut d, time_now)
+               .color(&mut d);                                         // the better way would be to check for mouse move separately
+        }                                                              // and to bury on each frame
       },
     }
 
@@ -84,7 +89,7 @@ fn main() {
 
 
     d.clear_background(Color::WHITE);
-    draw_field(&mut d, &trail);
+    // draw_field(&mut d, &trail);
 
     // let x = d.get_mouse_position();
  
