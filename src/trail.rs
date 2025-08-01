@@ -1,10 +1,9 @@
 use raylib::{color::Color, prelude::{RaylibDraw, RaylibDrawHandle}};
 use crate::CELL_SIZE;
 
-const TRAIL_SIZE: usize = 60;
-const LIFE_TIME: f64 = 1.0;
+const TRAIL_SIZE: usize = 200;
+const LIFE_TIME: f64 = 3.0;
 
-// https://doc.rust-lang.org/std/num/type.NonZeroUsize.html
 
 #[derive(Copy, Clone, Debug)]
 struct Slot {
@@ -20,6 +19,7 @@ impl Slot {
   }
 }
 
+
 #[derive(Debug)]
 pub struct Trail {
   data   : [Slot; TRAIL_SIZE],
@@ -27,6 +27,7 @@ pub struct Trail {
   start  : usize             ,
   end    : usize             ,
 }
+
 
 impl Trail {
   pub fn new() -> Self {
@@ -102,13 +103,4 @@ impl Trail {
     }
     self
   }
-}
-
-
-#[cfg(test)]
-mod tests {
-  use super::*;
-
-  #[test]
-  fn test_ignition() {}
 }
